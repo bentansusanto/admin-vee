@@ -8,9 +8,12 @@ import {
 
 
 
+import AuthGuard from "@/components/auth/AuthGuard";
+
 export default function Page({children}: { children: React.ReactNode}) {
   return (
-    <SidebarProvider
+    <AuthGuard>
+      <SidebarProvider
       style={
         {
           "--sidebar-width": "calc(var(--spacing) * 72)",
@@ -30,5 +33,6 @@ export default function Page({children}: { children: React.ReactNode}) {
         </div>
       </SidebarInset>
     </SidebarProvider>
+    </AuthGuard>
   )
 }

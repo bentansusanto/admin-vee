@@ -7,6 +7,10 @@ import {
   IconNotification,
   IconUserCircle,
 } from "@tabler/icons-react"
+import { useLogoutMutation } from "@/redux/services/authApi";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 import {
   Avatar,
@@ -39,6 +43,18 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
+  const router = useRouter()
+  const [logout, { isLoading }] = useLogoutMutation()
+
+  const handleLogout = async () => {
+    try {
+      await logout(undefined).unwrap()
+      toast.success("Logged out successfully")
+      router.push("/login")
+    } catch (err: any) {
+      toast.error("Failed to log out")
+    }
+  }
 
   return (
     <SidebarMenu>
@@ -98,8 +114,8 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <IconLogout />
+            <DropdownMenuItem onClick={handleLogout} disabled={isLoading}>
+              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <IconLogout className="mr-2 h-4 w-4" />}
               Log out
             </DropdownMenuItem>
           </DropdownMenuContent>

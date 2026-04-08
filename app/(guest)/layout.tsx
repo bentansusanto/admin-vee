@@ -1,9 +1,9 @@
-import Providers from "@/components/providers";
+import GuestGuard from "@/components/auth/GuestGuard";
 
 export default function GuestLayout({
   children
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <Providers>{children}</Providers>;
+  return <GuestGuard>{children}</GuestGuard>;
 }
