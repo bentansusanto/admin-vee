@@ -9,8 +9,19 @@ export const productSchema = z.object({
   size: z.string().optional(),
   jeweltypeId: z.string().min(1, "Category is required"),
   thumbnail: z.string().url("Please enter a valid thumbnail URL"),
-  images: z.array(z.string().url("Please enter a valid image URL")).min(1, "At least one image is required"),
-  video: z.array(z.string().url("Please enter a valid video URL")).optional(),
+  images: z
+    .array(z.string())
+    .transform((arr) => arr.filter((url) => url.trim() !== ""))
+    .pipe(
+      z
+        .array(z.string().url("Please enter a valid image URL"))
+        .min(1, "At least one image URL is required")
+    ),
+  video: z
+    .array(z.string())
+    .transform((arr) => arr.filter((url) => url.trim() !== ""))
+    .pipe(z.array(z.string().url("Please enter a valid video URL")))
+    .optional(),
   stock_ready: z.boolean().default(true),
   popular: z.boolean().default(false),
 });

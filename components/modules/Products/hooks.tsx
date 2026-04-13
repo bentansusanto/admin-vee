@@ -95,11 +95,18 @@ export const useProductFormHook = (id?: string) => {
     },
     onSubmit: async (values) => {
       try {
+        // Filter out empty URLs before submitting
+        const cleanedValues = {
+          ...values,
+          images: values.images.filter((url) => url.trim() !== ""),
+          video: (values.video || []).filter((url) => url.trim() !== ""),
+        };
+
         if (id) {
-          await updateProduct({ id, ...values }).unwrap();
+          await updateProduct({ id, ...cleanedValues }).unwrap();
           toast.success("Product updated successfully");
         } else {
-          await createProduct(values).unwrap();
+          await createProduct(cleanedValues).unwrap();
           toast.success("Product created successfully");
         }
         router.push("/dashboard/products");
