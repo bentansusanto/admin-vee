@@ -137,7 +137,7 @@ export const ProductList = () => {
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline" className="font-normal text-gray-600 border-gray-200">
-                      {product.jeweltype?.name || "General"}
+                      {product.jeweltype?.name_type || "General"}
                     </Badge>
                   </TableCell>
                   <TableCell className="font-medium text-gray-900">
