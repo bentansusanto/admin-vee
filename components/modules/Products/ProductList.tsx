@@ -19,7 +19,9 @@ import {
   IconSearch,
   IconDiamond,
   IconLoader2,
-  IconCategory
+  IconCategory,
+  IconChevronLeft,
+  IconChevronRight
 } from "@tabler/icons-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -36,7 +38,11 @@ export const ProductList = () => {
     searchQuery, 
     setSearchQuery,
     refetch,
-    router
+    router,
+    currentPage,
+    totalPages,
+    totalItems,
+    setCurrentPage,
   } = useProductHook();
 
   const formatPrice = (price: number) => {
@@ -181,6 +187,62 @@ export const ProductList = () => {
           </TableBody>
         </Table>
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between px-1 pt-2">
+          <p className="text-sm text-gray-400">
+            Showing {((currentPage - 1) * 10) + 1}–{Math.min(currentPage * 10, totalItems)} of {totalItems} products
+          </p>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setCurrentPage(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="flex h-8 w-8 items-center justify-center rounded-md border border-gray-200 bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <IconChevronLeft className="h-4 w-4" />
+            </button>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter((page) => {
+                // Show first, last, current ±1 and ellipsis markers
+                return page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1;
+              })
+              .reduce<(number | "...")[]>((acc, page, idx, arr) => {
+                if (idx > 0 && typeof arr[idx - 1] === "number" && (page as number) - (arr[idx - 1] as number) > 1) {
+                  acc.push("...");
+                }
+                acc.push(page);
+                return acc;
+              }, [])
+              .map((item, idx) =>
+                item === "..." ? (
+                  <span key={`ellipsis-${idx}`} className="px-1 text-gray-400 text-sm">…</span>
+                ) : (
+                  <button
+                    key={item}
+                    onClick={() => setCurrentPage(item as number)}
+                    className={`h-8 w-8 rounded-md text-sm font-medium transition-colors ${
+                      currentPage === item
+                        ? "bg-[#b8860b] text-white"
+                        : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                    }`}
+                  >
+                    {item}
+                  </button>
+                )
+              )}
+
+            <button
+              onClick={() => setCurrentPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="flex h-8 w-8 items-center justify-center rounded-md border border-gray-200 bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <IconChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       <CreateCategoryModal
         open={isCategoryModalOpen}

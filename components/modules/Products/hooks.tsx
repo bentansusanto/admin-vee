@@ -15,18 +15,44 @@ import { productSchema, ProductValues } from "./schema";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
 
+const ITEMS_PER_PAGE = 10;
+
 export const useProductHook = () => {
   const router = useRouter();
   const { data, isLoading, isError, refetch } = useGetProductsQuery(undefined);
   const [deleteProduct, { isLoading: isDeleting }] = useDeleteProductMutation();
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const products = data?.data || [];
 
-  const filteredProducts = products.filter((product: any) =>
+  // Sort newest first
+  const sortedProducts = [...products].sort((a: any, b: any) => {
+    const dateA = new Date(a.createdAt || 0).getTime();
+    const dateB = new Date(b.createdAt || 0).getTime();
+    return dateB - dateA;
+  });
+
+  // Filter by search
+  const filteredProducts = sortedProducts.filter((product: any) =>
     (product.name_product?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
     (product.sku?.toLowerCase() || "").includes(searchQuery.toLowerCase())
   );
+
+  // Pagination
+  const totalItems = filteredProducts.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
+  const safePage = Math.min(currentPage, totalPages);
+  const paginatedProducts = filteredProducts.slice(
+    (safePage - 1) * ITEMS_PER_PAGE,
+    safePage * ITEMS_PER_PAGE
+  );
+
+  // Reset to page 1 when search changes
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    setCurrentPage(1);
+  };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this product?")) return;
@@ -40,15 +66,19 @@ export const useProductHook = () => {
   };
 
   return {
-    products: filteredProducts,
+    products: paginatedProducts,
     isLoading,
     isError,
     handleDelete,
     isDeleting,
     searchQuery,
-    setSearchQuery,
+    setSearchQuery: handleSearch,
     refetch,
-    router
+    router,
+    currentPage: safePage,
+    totalPages,
+    totalItems,
+    setCurrentPage,
   };
 };
 
