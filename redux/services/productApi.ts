@@ -18,6 +18,14 @@ export const productApi = createApi({
       query: () => "/jeweltypes",
       providesTags: ["JewelType"],
     }),
+    createJewelType: builder.mutation({
+      query: (jewelType) => ({
+        url: "/create_jeweltype",
+        method: "POST",
+        body: jewelType,
+      }),
+      invalidatesTags: ["JewelType"],
+    }),
     createProduct: builder.mutation({
       query: (product) => ({
         url: "/create_product",
@@ -48,6 +56,7 @@ export const {
   useGetProductsQuery,
   useGetProductQuery,
   useGetJewelTypesQuery,
+  useCreateJewelTypeMutation,
   useCreateProductMutation,
   useUpdateProductMutation,
   useDeleteProductMutation,

@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useProductHook } from "./hooks";
+import { CreateCategoryModal } from "./CreateCategoryModal";
 import { 
   Table, 
   TableBody, 
@@ -17,12 +18,15 @@ import {
   IconPlus, 
   IconSearch,
   IconDiamond,
-  IconLoader2
+  IconLoader2,
+  IconCategory
 } from "@tabler/icons-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 
 export const ProductList = () => {
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+
   const { 
     products, 
     isLoading, 
@@ -58,12 +62,21 @@ export const ProductList = () => {
           <h1 className="text-3xl font-bold tracking-tight text-gray-900 font-serif">Products</h1>
           <p className="text-sm text-gray-500 mt-1">Manage your exquisite jewelry inventory.</p>
         </div>
-        <Button 
-          className="bg-[#b8860b] hover:bg-[#9a7b0a] text-white"
-          onClick={() => router.push("/dashboard/products/add")}
-        >
-          <IconPlus className="mr-2 h-4 w-4" /> Add Product
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            className="border-[#b8860b] text-[#b8860b] hover:bg-[#b8860b]/10"
+            onClick={() => setIsCategoryModalOpen(true)}
+          >
+            <IconCategory className="mr-2 h-4 w-4" /> Add Category
+          </Button>
+          <Button 
+            className="bg-[#b8860b] hover:bg-[#9a7b0a] text-white"
+            onClick={() => router.push("/dashboard/products/add")}
+          >
+            <IconPlus className="mr-2 h-4 w-4" /> Add Product
+          </Button>
+        </div>
       </div>
 
       <div className="flex items-center gap-2 rounded-lg border border-gray-100 bg-white px-3 py-2 shadow-sm">
@@ -168,6 +181,11 @@ export const ProductList = () => {
           </TableBody>
         </Table>
       </div>
+
+      <CreateCategoryModal
+        open={isCategoryModalOpen}
+        onClose={() => setIsCategoryModalOpen(false)}
+      />
     </div>
   );
 };
