@@ -52,6 +52,7 @@ export async function proxy(request: NextRequest) {
       if (res.status === 401) {
         const response = NextResponse.redirect(new URL("/login", request.url));
         response.cookies.delete("session_token");
+        response.cookies.delete("token_mirror");
         return response;
       }
 
@@ -60,9 +61,12 @@ export async function proxy(request: NextRequest) {
 
       // Block access ONLY for 'customer' role
       if (userRole === "customer") {
-        return NextResponse.redirect(
+        const response = NextResponse.redirect(
           new URL("/login?error=unauthorized", request.url)
         );
+        response.cookies.delete("session_token");
+        response.cookies.delete("token_mirror");
+        return response;
       }
 
       return NextResponse.next();
