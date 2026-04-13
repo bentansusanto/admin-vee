@@ -8,11 +8,11 @@ import {
 
 
 
-import AuthGuard from "@/components/auth/AuthGuard";
+import AuthProvider from "@/components/auth/AuthProvider";
 
 export default function Page({children}: { children: React.ReactNode}) {
   return (
-    <AuthGuard>
+    <AuthProvider>
       <SidebarProvider
       style={
         {
@@ -33,6 +33,7 @@ export default function Page({children}: { children: React.ReactNode}) {
         </div>
       </SidebarInset>
     </SidebarProvider>
-    </AuthGuard>
+    </AuthProvider>
   )
 }
+

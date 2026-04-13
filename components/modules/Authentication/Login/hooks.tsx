@@ -45,6 +45,12 @@ export const useLoginHook = () => {
       try {
         const result = await login(values).unwrap();
         if (result) {
+          // Set token mirror cookie for middleware/proxy validation
+          const token = result.data?.access_token || result.access_token;
+          if (token) {
+            document.cookie = `token_mirror=${token}; path=/; max-age=86400; SameSite=Lax`;
+          }
+          
           toast.success("Login successful!");
           router.push("/dashboard");
         } else {
