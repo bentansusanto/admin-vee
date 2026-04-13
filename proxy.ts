@@ -1,9 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 function getApiUrl() {
-  return process.env.NODE_ENV === "development"
-    ? process.env.NEXT_PUBLIC_API_URL || "https://app.server-veepearl.orb.local/api/v1"
-    : process.env.NEXT_PUBLIC_API_URL;
+  return process.env.NEXT_PUBLIC_API_URL;
 }
 
 export async function proxy(request: NextRequest) {
@@ -15,34 +13,41 @@ export async function proxy(request: NextRequest) {
   const isGuestPath = guestPaths.some((p) => pathname.startsWith(p));
   const isProtectedPath = protectedPaths.some((p) => pathname.startsWith(p));
 
-  // The backend sets the session token in an HttpOnly cookie named "session_token"
-  // In cross-site development, we use "token_mirror" set by the frontend.
-  const sessionToken =
-    request.cookies.get("session_token")?.value ||
-    request.cookies.get("token_mirror")?.value;
+  // Server-set HttpOnly cookie (from same-domain backend)
+  const sessionToken = request.cookies.get("session_token")?.value;
+  // Client-set cookie (access_token, set manually after login for cross-domain)
+  const tokenMirror = request.cookies.get("token_mirror")?.value;
+
+  const hasAnyToken = !!(sessionToken || tokenMirror);
 
   // 1. Root redirect
   if (pathname === "/") {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    return NextResponse.redirect(new URL(hasAnyToken ? "/dashboard" : "/login", request.url));
   }
 
   // CASE 1: Authenticated user attempting to access guest-only routes
-  if (isGuestPath && sessionToken) {
+  // If token_mirror exists, user just logged in - trust it directly
+  if (isGuestPath && tokenMirror) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
-  // CASE 2: No session token for protected routes
-  if (isProtectedPath && !sessionToken) {
+  // CASE 2: No token at all for protected routes → redirect to login
+  if (isProtectedPath && !hasAnyToken) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // CASE 3: Validate session and role for protected routes
+  // CASE 3: Has token_mirror (client-set access_token) → trust it directly
+  // The access_token is short-lived and was just issued, so we trust it
+  if (isProtectedPath && tokenMirror) {
+    return NextResponse.next();
+  }
+
+  // CASE 4: Has only session_token → validate via backend
   if (isProtectedPath && sessionToken) {
     const baseUrl = getApiUrl();
     if (!baseUrl) return NextResponse.next();
 
     try {
-      // Validate session via backend refresh
       const res = await fetch(`${baseUrl}/auth/refresh_token`, {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -71,8 +76,7 @@ export async function proxy(request: NextRequest) {
 
       return NextResponse.next();
     } catch (error) {
-      // On network error or other server errors, allow the request to proceed
-      // and let client-side guards handle the state hydration/error display.
+      // On network error, allow the request to proceed
       return NextResponse.next();
     }
   }

@@ -49,6 +49,9 @@ export function NavUser({
   const handleLogout = async () => {
     try {
       await logout(undefined).unwrap()
+      // Clear token_mirror cookie so proxy doesn't redirect back to dashboard
+      document.cookie = "token_mirror=; path=/; max-age=0; SameSite=Lax";
+      document.cookie = "session_token=; path=/; max-age=0; SameSite=Lax";
       toast.success("Logged out successfully")
       router.push("/login")
     } catch (err: any) {
